@@ -17,6 +17,14 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Personal folders
+snippets/__fetchDB
+snippets/query
+snippets/app
+snippets/kube
+snippets/query
+snippets/scripts
+
 # =========================
 # Operating System Files
 # =========================
@@ -42,3 +50,5 @@ Network Trash Folder
 Temporary Items
 .apdisk
 *.exe
+snippets/path_files.txt
+snippets/path_temp.txt
