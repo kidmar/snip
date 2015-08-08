@@ -30,11 +30,15 @@ class Snip extends SelectDialog {
         ; Retrieve the base path and the special actionpath
         this.path := a_path
         this.actions_folder := this.path "\" this.actions_folder
-        
+
         ; Hide special folders to users?
         IniRead, l_hide_specials, % this.parent.ini_file, general, hide_specials
         this.hide_specials := l_hide_specials
-        
+
+        ; Change tray icon
+        IniRead, l_icon, % l_ini_file, general, icon, snip.ico
+        Menu, Tray, Icon, % l_icon
+
         ; Setup levels
         this.levels := [ new SnipSelectLevel(this)
                        , new ActionSelectLevel(this) ]
@@ -157,11 +161,11 @@ SetTitleMatchMode, 2
 ; Retrieve hotkeys from the ini_file
 l_ini_file := a_scriptdir "\snip.ini"
 IniRead, l_hotkey_reload, % l_ini_file, general, reload, #r
-IniRead, l_hotkey_show, % l_ini_file, general, show, !Esc
+IniRead, l_hotkey_show,   % l_ini_file, general, show,   !Esc
 
 ; Activate the hotkeys
 Hotkey, % l_hotkey_reload, Snip_Reload
-Hotkey, % l_hotkey_show, Snip_Show
+Hotkey, % l_hotkey_show,   Snip_Show
 
 return
 
@@ -174,11 +178,8 @@ return
 Snip_Show:
     Core.init()
 
-    IniRead, l_icon, % l_ini_file, general, icon, snip.ico
+    ; Read path from ini_file
     IniRead, l_path, % l_ini_file, general, path, % ".\snippets"
-
-    ; Change tray icon
-    Menu, Tray, Icon, % l_icon
 
     l_snip := new Snip(l_path)
     l_snip.show()
