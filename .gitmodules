@@ -2,4 +2,3 @@
 	path = lib
 	url = https://github.com/lordkrandel/ahk_library
 	branch = lib_only
-	ignore = dirty
