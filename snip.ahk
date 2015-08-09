@@ -1,3 +1,7 @@
+#include snip_levels.ahk
+#include <lib_CORE>
+Core.init()
+
 ;__________________________________________________________________________________________________
 
 ;; Snip main class
@@ -25,20 +29,20 @@ class Snip extends SelectDialog {
                          , "+Down"       : "arrowSlot" } }
 
     ;; Constructor
-    __new(a_path=""){
+    __new(a_ini_path=""){
 
         ; Retrieve the base path and the special actionpath
-        this.path := a_path
+        this.ini_file := a_ini_path
+
+        ; Retrieve path from ini_file
+        IniRead, l_path, % this.ini_file, general, path, % a_scriptdir "\snippets"
+        this.path := l_path
         this.actions_folder := this.path "\" this.actions_folder
 
-        ; Hide special folders to users?
-        IniRead, l_hide_specials, % this.parent.ini_file, general, hide_specials
+        ; Retrieve whether to hide special folders to users from ini_file
+        IniRead, l_hide_specials, % this.ini_file, general, hide_specials
         this.hide_specials := l_hide_specials
-
-        ; Change tray icon
-        IniRead, l_icon, % l_ini_file, general, icon, snip.ico
-        Menu, Tray, Icon, % l_icon
-
+        
         ; Setup levels
         this.levels := [ new SnipSelectLevel(this)
                        , new ActionSelectLevel(this) ]
@@ -59,7 +63,7 @@ class Snip extends SelectDialog {
         return this.getCurrentLevel().getEntries()
     }
     ;; Activate current level on enter
-    go() {    
+    go() {
         this.getCurrentLevel().go()
     }
 
@@ -149,25 +153,29 @@ class Snip extends SelectDialog {
 
 }
 
-;__________________________________________________________________________________________________
+;________________________________________________________________________________________________
 
-#include snip_levels.ahk
-#include <lib_CORE>
 
-; General setup
-#Singleinstance force
-SetTitleMatchMode, 2
+{
+    ; General setup
+    #Singleinstance force
+    SetTitleMatchMode, 2
 
-; Retrieve hotkeys from the ini_file
-l_ini_file := a_scriptdir "\snip.ini"
-IniRead, l_hotkey_reload, % l_ini_file, general, reload, #r
-IniRead, l_hotkey_show,   % l_ini_file, general, show,   !Esc
+    ; Retrieve hotkeys from the ini_file
+    l_ini_file := a_scriptdir "\snip.ini"
+    IniRead, l_hotkey_reload, % l_ini_file, general, reload, #r
+    IniRead, l_hotkey_show,   % l_ini_file, general, show,   !Esc
 
-; Activate the hotkeys
-Hotkey, % l_hotkey_reload, Snip_Reload
-Hotkey, % l_hotkey_show,   Snip_Show
+    ; Change tray icon
+    IniRead, l_icon, % l_ini_file, general, icon, snip.ico
+    Menu, Tray, Icon, % l_icon
 
-return
+    ; Activate the hotkeys
+    Hotkey, % l_hotkey_reload, Snip_Reload
+    Hotkey, % l_hotkey_show,   Snip_Show
+
+    return
+}
 
 ; Reload script hotkey
 Snip_Reload:
@@ -176,12 +184,9 @@ return
 
 ; Show snip window hotkey
 Snip_Show:
-    Core.init()
 
     ; Read path from ini_file
-    IniRead, l_path, % l_ini_file, general, path, % ".\snippets"
-
-    l_snip := new Snip(l_path)
+    l_snip := new Snip(a_scriptdir "\snip.ini")
     l_snip.show()
 
 return
