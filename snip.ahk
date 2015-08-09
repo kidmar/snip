@@ -16,8 +16,8 @@ class Snip extends SelectDialog {
 
     win   := { listbox   : 0
              , edit      : 0
-             , font      : "Consolas"
-             , fontsize  : 10
+             , font      : "Segoe UI"
+             , fontsize  : 11
              , controls: { "Edit1"       : "filter" }
              , hotkeys : { "+Enter"      : "enterSlot"
                          , "Enter"       : "enterSlot"
@@ -29,7 +29,7 @@ class Snip extends SelectDialog {
                          , "+Down"       : "arrowSlot" } }
 
     ;; Constructor
-    __new(a_ini_path=""){
+    __new(a_ini_path="") {
 
         ; Retrieve the base path and the special actionpath
         this.ini_file := a_ini_path
@@ -42,12 +42,10 @@ class Snip extends SelectDialog {
         ; Retrieve whether to hide special folders to users from ini_file
         IniRead, l_hide_specials, % this.ini_file, general, hide_specials
         this.hide_specials := l_hide_specials
-        
+
         ; Setup levels
         this.levels := [ new SnipSelectLevel(this)
                        , new ActionSelectLevel(this) ]
-
-        this.listbox := new Listbox(l_hwndlistbox)
 
         ; Show the window
         base.__new(this.getEntries())
@@ -75,7 +73,6 @@ class Snip extends SelectDialog {
             this.enterSlot()
             return
         }
-
         ; Otherwise, save selected entry from level 0
         this.selectedEntry := this.getCurrentLevel().getSelected()
 
@@ -95,21 +92,22 @@ class Snip extends SelectDialog {
     populate(){
 
         ; retrieve entries
-        this.entries := this.getEntries()
+        l_entries := this.getEntries()
 
         ; Setup the listbox
-        this.listbox.set(this.entries)
+        this.listbox.set(l_entries)
 
         ; Autoselect first
         this.listbox.choose(1)
 
         ; Clear the edit and set focus
+        this.entries := l_entries.join("|")
         this.controlSet(this.win.edit, "")
         ControlFocus,, % "ahk_id " this.win.edit
 
     }
 
-    get_actions(a_extension){
+    get_actions(a_extension) {
 
         l_actions := []
         l_extension := ""
@@ -119,6 +117,7 @@ class Snip extends SelectDialog {
 
             ; If you don't find the extension, try with "default"
             l_extension := (a_index == 1 ? a_extension : "default")
+
             IniRead, l_config, % this.ini_file, extensionsActions, % l_extension, %A_Space%
 
             ; If you find something, get it
@@ -129,6 +128,7 @@ class Snip extends SelectDialog {
 
         ; Add all other actions from the actions folder
         ls_mask := this.actions_folder "\*.ahk"
+
         l_files := ls_mask.getfiles()
         for _, l_action in l_files {
             l_action := l_action.basename().noextension()
@@ -155,11 +155,10 @@ class Snip extends SelectDialog {
 
 ;________________________________________________________________________________________________
 
-
 {
+
     ; General setup
     #Singleinstance force
-    SetTitleMatchMode, 2
 
     ; Retrieve hotkeys from the ini_file
     l_ini_file := a_scriptdir "\snip.ini"
@@ -175,6 +174,7 @@ class Snip extends SelectDialog {
     Hotkey, % l_hotkey_show,   Snip_Show
 
     return
+
 }
 
 ; Reload script hotkey
@@ -184,10 +184,11 @@ return
 
 ; Show snip window hotkey
 Snip_Show:
-
     ; Read path from ini_file
-    l_snip := new Snip(a_scriptdir "\snip.ini")
-    l_snip.show()
+    Snip := new Snip(a_scriptdir "\snip.ini")
+    Snip.show()
+
+    Log := new Log("snip.log")
 
 return
 
