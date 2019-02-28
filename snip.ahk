@@ -1,5 +1,6 @@
 #include snip_levels.ahk
 #include <lib_CORE>
+#SingleInstance, Force
 Core.init()
 
 ;__________________________________________________________________________________________________
@@ -25,7 +26,8 @@ class Snip extends SelectDialog {
                          , "Up"          : "arrowSlot"
                          , "Down"        : "arrowSlot"
                          , "+Up"         : "arrowSlot"
-                         , "Tab"         : "tabSlot"
+                         , "^e"          : "editSnip"
+						 , "Tab"         : "tabSlot"
                          , "+Down"       : "arrowSlot" } }
 
     ;; Constructor
@@ -53,18 +55,61 @@ class Snip extends SelectDialog {
     }
     
     ;; Get current level
-    getCurrentLevel(){
+    getCurrentLevel() {
         return this.levels[this.level + 1]
     }
+
     ;; Get entries from current level
-    getEntries(){
+    getEntries() {
         return this.getCurrentLevel().getEntries()
     }
+
     ;; Activate current level on enter
     go() {
         this.getCurrentLevel().go()
     }
-
+	
+	editSnip() {
+        l_file := this.controlGet(this.listbox.hwnd)
+        l_file := this.entries_map[l_file]
+        
+        ; Recupero l'estensione del file
+        StringGetPos, PosA, l_file, ., R
+   		StringRight, CurrentExt, l_file, % StrLen(l_file) - PosA - 1
+        
+		try {
+			RegRead, ExtName, HKEY_CLASSES_ROOT\.%CurrentExt%
+	        if (ErrorLevel != 1) {
+	        	try {
+					RegRead, EditorProgram, HKEY_CLASSES_ROOT\%ExtName%\Shell\Edit\Command
+					if (ErrorLevel != 1) {
+						PosA := InStr(EditorProgram, "%")
+						if (PosA > 0) {
+							RealProg := SubStr(EditorProgram, 1, PosA)
+							PosA := InStr(RealProg, " ", false, -1, 1)
+							RealProg := SubStr(RealProg, 1, PosA -1)
+						} else {
+							RealProg := EditorProgram
+						}
+						if (InStr(RealProg, """") = 0) {
+							RealProg := """" . RealProg . """"
+						}
+						Run, %RealProg% "%l_file%"
+					}
+					else {
+						Run, notepad "%l_file%"
+					}
+				} catch e {
+					Run, notepad "%l_file%"
+				}
+			}
+		} catch e {
+			Run, notepad "%l_file%"
+		}
+        
+        this.close()
+    }
+	
     ;; Change level on tab
     tabSlot(){
 
@@ -142,12 +187,12 @@ class Snip extends SelectDialog {
 
     ;; Run selected action on specified file and close snip
     doAction(a_action, a_file){
-
+        
         ; Build the command
         l_command := "%s %s\%s.ahk %s".fmt(A_AhkPath, this.actions_folder, a_action, a_file)
 
         ; Run the command
-        Run, % l_command
+        Run, % l_command, %A_ScriptDir%
 
     }
 
@@ -191,6 +236,4 @@ Snip_Show:
     Log := new Log("snip.log")
 
 return
-
-
 
